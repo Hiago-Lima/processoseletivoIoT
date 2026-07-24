@@ -100,6 +100,6 @@ def avaliar_estoque(peso):
 
 print("Sistema Kanban Inicializado")
 while True: # loop principal do sistema, que fica lendo o peso da caixa e avaliando o estoque continuamente
-    peso_atual = sensor.ler_peso()
+    peso_atual = sensor.leitura_peso()
     avaliar_estoque(peso_atual) 
 
