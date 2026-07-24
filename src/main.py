@@ -53,6 +53,7 @@ def atualizar_leds(estado):
     led_amarelo.value(1 if estado == "REGULAR" else 0)
     led_verde.value(1 if estado == "CHEIO" else 0)
     led_vermelho.value(1 if estado == "CRITICO" else 0)
+    # anomalia nao acende nenhum led, apenas envia alerta, pois nao é um estado de estoque, mas sim um estado de erro do sensor
 
 # FSM
 alerta_vazio_enviado = False
@@ -60,5 +61,45 @@ reposicao_pendente = False
 alerta_anomalia_enviado = False
 # com essas variáveis de estado, podemos controlar o fluxo do sistema e evitar que os alertas sejam enviados repetidamente, garantindo que o sistema funcione de forma eficiente
 # logicas
+
+def avaliar_estoque(peso):
+    global alerta_vazio_enviado, reposicao_pendente, alerta_anomalia_enviado # necessario pq o python entende que essas variáveis são locais a função, então precisamos declarar que elas são globais para poder modificar o valor delas dentro da função
+
+    # Caso 1, anomalia do sensor 
+    if peso == 0:
+        if not alerta_anomalia_enviado:
+            print("ALERTA: Caixa ausente ou erro de calibração no sensor HX711!")
+            alerta_anomalia_enviado = True
+        atualizar_leds("ANOMALIA")
+        return
+ 
+    alerta_anomalia_enviado = False
+ 
+    # Caso 2, estoque crítico, caixa vazia
+    if peso <= LIMITE_SEGURANCA:
+        if not alerta_vazio_enviado:
+            print("Evento de reposição disparado! Caixa vazia detectada.")
+            alerta_vazio_enviado = True
+            reposicao_pendente = True
+        atualizar_leds("CRITICO")
+        return
+ 
+    # Caso 3, reabastecimento concluído, caixa cheia
+    if reposicao_pendente and peso >= (PESO_CHEIO - TOLERANCIA_CHEIO):
+        print("Abastecimento concluído. Caixa cheia.")
+        reposicao_pendente = False
+        alerta_vazio_enviado = False
+        atualizar_leds("CHEIO")
+        return
+ 
+    # Caso 4, estoque regular, caixa parcialmente cheia
+    if not reposicao_pendente:
+        print(f"Status: Estoque Regular ({int(peso)}g)") 
+        atualizar_leds("REGULAR")
+ 
+
 print("Sistema Kanban Inicializado")
+while True: # loop principal do sistema, que fica lendo o peso da caixa e avaliando o estoque continuamente
+    peso_atual = sensor.ler_peso()
+    avaliar_estoque(peso_atual) 
 
