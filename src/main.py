@@ -49,8 +49,16 @@ sensor = HX711(dt, clk, PESO_CHEIO / LEITURA_BRUTA_MAXIMA)  # cria uma instânci
 # o fator de escala é calculado dividindo a carga máxima nominal da caixa pelo valor bruto máximo do sensor, isso nos dá a relação entre o valor bruto lido e o peso real em gramas, basicamente uma regra de 3 simples, se o sensor HX711 retorna 2100 quando a carga máxima nominal é aplicada, então cada unidade bruta do sensor equivale a PESO_CHEIO / LEITURA_BRUTA_MAXIMA gramas
 
 # saida dos leds
+def atualizar_leds(estado):
+    led_amarelo.value(1 if estado == "REGULAR" else 0)
+    led_verde.value(1 if estado == "CHEIO" else 0)
+    led_vermelho.value(1 if estado == "CRITICO" else 0)
 
-
+# FSM
+alerta_vazio_enviado = False
+reposicao_pendente = False
+alerta_anomalia_enviado = False
+# com essas variáveis de estado, podemos controlar o fluxo do sistema e evitar que os alertas sejam enviados repetidamente, garantindo que o sistema funcione de forma eficiente
 # logicas
 print("Sistema Kanban Inicializado")
 
