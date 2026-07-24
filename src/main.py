@@ -6,7 +6,7 @@ led_amarelo = Pin(23, Pin.OUT)    # Regular
 clk = Pin(17, Pin.OUT)
 dt = Pin(16, Pin.IN)
 # constantes
-PESO_CHEIO = 5000          # carga máxima nominal da caixa
+PESO_CHEIO = 5          # carga máxima nominal da caixa
 LEITURA_BRUTA_MAXIMA = 2100 # leitura bruta máxima do sensor, isso é o valor que o sensor HX711 retorna quando a carga máxima nominal é aplicada, ele foi encontrado no site do wokwi 
 LIMITE_SEGURANCA = 300     # abaixo disso o estoque deixa de ser "regular"
 TOLERANCIA_CHEIO = 100     # margem para considerar "voltou a ficar cheio"
