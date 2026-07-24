@@ -1,5 +1,4 @@
 from machine import Pin
-
 # ligações
 led_vermelho = Pin(21, Pin.OUT)   # Crítico
 led_verde = Pin(22, Pin.OUT)      # Cheio
@@ -7,13 +6,51 @@ led_amarelo = Pin(23, Pin.OUT)    # Regular
 clk = Pin(17, Pin.OUT)
 dt = Pin(16, Pin.IN)
 # constantes
-PESO_CHEIO = 5000          # g - carga máxima nominal da caixa
-LIMITE_SEGURANCA = 300     # g - abaixo disso o estoque deixa de ser "regular"
-TOLERANCIA_CHEIO = 100     # g - margem para considerar "voltou a ficar cheio"
-INTERVALO_LEITURA_MS = 200 # loop curto e não-bloqueante, tlvz mude isso dps
+PESO_CHEIO = 5000          # carga máxima nominal da caixa
+LEITURA_BRUTA_MAXIMA = 2100 # leitura bruta máxima do sensor, isso é o valor que o sensor HX711 retorna quando a carga máxima nominal é aplicada, ele foi encontrado no site do wokwi 
+LIMITE_SEGURANCA = 300     # abaixo disso o estoque deixa de ser "regular"
+TOLERANCIA_CHEIO = 100     # margem para considerar "voltou a ficar cheio"
+# classe do sensor de peso e suas funções
+class HX711:
+    # Implementação da leitura do sensor HX711
+    # Retorna o valor lido do sensor
+    def __init__(self, dt_pin, clk_pin, fator_escala):
+        self.dt = dt_pin
+        self.clk = clk_pin
+        self.clk.value(0)  # Inicializa o pino de clock em LOW
+        self.fator_escala = fator_escala
 
-# leitura inicial do sensor
+    def leitura_bruta(self):
+        while self.dt.value() == 1: # Espera até que o pino DT fique em LOW, porque o sensor HX711 envia os dados quando DT está em LOW
+            pass  
+        valor = 0
+        for i in range(24): # Lê 24 bits do sensor(é a maneira que o sensor HX711 envia os dados)
+            self.clk.value(1)  # Seta o pino de clock em HIGH
+            valor = (valor << 1) | self.dt.value()  # Lê o bit do pino DT e adiciona e desloca para a esquerda para formar o valor de 24 bits
+            self.clk.value(0)  # Seta o pino de clock em LOW, fecha o pulso de clock
+        # depois disso há o 25  pulso de clock que é usado para definir o ganho do sensor, mas não precisamos dele para a leitura do peso, então apenas damos o pulso e não usamos o valor
+        self.clk.value(1) 
+        self.clk.value(0) 
+        if valor & 0x800000:    # verifica se o bit mais significativo é 1, o que indica que o valor é negativo em complemento de dois
+            valor -= 0x1000000  # subtrai 2^24 para converter o valor para um inteiro negativo
+        # isso é necessário porque o sensor HX711 envia os dados em complemento de dois, então precisamos converter para um valor inteiro normal( isso está explicado no datasheet do sensor HX711)
+        return valor
+
+    # retorna o peso em gramas, multiplicando a leitura bruta pelo fator de escala
+
+    def leitura_peso(self):
+        bruto = self.leitura_bruta()
+        peso = bruto * self.fator_escala # o valor bruto lido do sensor é multiplicado pelo fator de escala para obter o peso em gramas
+        if peso < 0: # se o peso for negativo, significa que o sensor está fora de calibração ou houve algum erro na leitura, então retornamos 0 para evitar valores negativos
+            peso = 0
+        return peso
+
+sensor = HX711(dt, clk, PESO_CHEIO / LEITURA_BRUTA_MAXIMA)  # cria uma instância do sensor HX711 com os pinos DT e CLK e o fator de escala calculado
+# o fator de escala é calculado dividindo a carga máxima nominal da caixa pelo valor bruto máximo do sensor, isso nos dá a relação entre o valor bruto lido e o peso real em gramas, basicamente uma regra de 3 simples, se o sensor HX711 retorna 2100 quando a carga máxima nominal é aplicada, então cada unidade bruta do sensor equivale a PESO_CHEIO / LEITURA_BRUTA_MAXIMA gramas
+
 # saida dos leds
+
+
 # logicas
 print("Sistema Kanban Inicializado")
 

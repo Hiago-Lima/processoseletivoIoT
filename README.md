@@ -190,11 +190,11 @@ O desenvolvimento acontece principalmente nos arquivos abaixo:
   - Tipo de placa
   - Framework
   - Dependências adicionais
- 
+
 #### Rodando localmente
 
 Para executar o seu projeto locamente, é necesário preparar a imagem docker local, e após isso
-utiliza-la para gerar o arquivo que conterá o seu código para o projeto, para isso, execute os 
+utiliza-la para gerar o arquivo que conterá o seu código para o projeto, para isso, execute os
 seguintes códigos:
 
 1. Prepara a imagem docker (Necessário rodar apenas 1 vez)
@@ -339,6 +339,14 @@ Utilize este espaço para comentar, se desejar:
 - Limitações da solução
 - Melhorias que você faria com mais tempo
 - Principais aprendizados durante o desafio
+
+## Referências
+
+Comportamento Real do HX711 - https://datasheet4u.com/download/842201/HX711.html
+
+Comportamento Simulado do HX711 - https://docs.wokwi.com/parts/wokwi-hx711
+
+Código de estudo e base - https://github.com/robert-hh/hx711
 
 ---
 
